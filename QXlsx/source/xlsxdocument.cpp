@@ -278,14 +278,7 @@ bool DocumentPrivate::loadPackage(QIODevice *device)
 		//If the .rel file exists, load it.
 		if (zipReader.filePaths().contains(rel_path))
 			sheet->relationships()->loadFromXmlData(zipReader.fileData(rel_path));
-
-		if (strFilePath.startsWith(QStringLiteral("xl/xl/")) &&
-			!zipReader.filePaths().contains(strFilePath) &&
-			zipReader.filePaths().contains(strFilePath.mid(3))) {
-			sheet->loadFromXmlData(zipReader.fileData(strFilePath.mid(3)));
-		} else {
-			sheet->loadFromXmlData(zipReader.fileData(strFilePath));
-		}
+		sheet->loadFromXmlData(zipReader.fileData(sheet->filePath()));
 	}
 
 	//load external links
@@ -1219,17 +1212,6 @@ bool Document::selectSheet(const QString &name)
 bool Document::selectSheet(int index)
 {
 	Q_D(Document);
-	// after selected   sheet for writing or reading, many sheets of the excel are be set to selected
-	// i can't find  where is the bug, so make circle loop to set only one worksheet is selected other sheets are unselected.
-	for(int i=0;i<d->workbook->sheetCount();i++){  // liu feij 2022-10-15  to avoid many sheet are selected , only the activesheet is selected
-           if(d->workbook->sheet(i)->sheetType()==AbstractSheet::ST_WorkSheet){
-               if(d->workbook->sheet(i)->sheetName()==name){
-                  static_cast<Worksheet *>(d->workbook->sheet(i))->setSelected(true);
-               }else{
-                   static_cast<Worksheet *>(d->workbook->sheet(i))->setSelected(false);
-               }
-           }
-        }
 	return d->workbook->setActiveSheet(index);
 }
 
